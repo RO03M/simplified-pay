@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  db:
+    container_name: simplified_pay_postgres_database
+    image: postgres
+    restart: unless-stopped
+    shm_size: 128mb
+    ports:
+      - 5432:5432
+    networks:
+      - postgresNetwork
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: simplified_pay
+      POSTGRES_PASSWORD: super_secure_password
+  simplified_pay_backend:
+    restart: unless-stopped
+    container_name: simplified_pay_backend
+    depends_on:
+      - db
+    build: .
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - 8000:8000
+    networks:
+      - postgresNetwork
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: simplified_pay
+      DB_USERNAME: postgres
+      DB_PASSWORD: super_secure_password
+
+volumes:
+  db_data:
+networks:
+  postgresNetwork:
+    driver: bridge
